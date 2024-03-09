@@ -4,14 +4,24 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkLowLevel.MotorType;
+
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
 //import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -31,17 +41,77 @@ public class Robot extends TimedRobot {
    */
 
   //Motors
-  private final PWMVictorSPX frontleftMotor = new PWMVictorSPX(1);
-  private final PWMVictorSPX backleftMotor = new PWMVictorSPX(2);
-  private final PWMVictorSPX frontrightMotor = new PWMVictorSPX(3);
-  private final PWMVictorSPX backrightMotor = new PWMVictorSPX(4); 
+  private final PWMVictorSPX frontLeftMotor = new PWMVictorSPX(1);
+  private final PWMVictorSPX backLeftMotor = new PWMVictorSPX(2);
+  private final PWMVictorSPX frontRightMotor = new PWMVictorSPX(3);
+  private final PWMVictorSPX backRightMotor = new PWMVictorSPX(4); 
+
+  private final CANSparkMax pivotMotor = new CANSparkMax(1, MotorType.kBrushless);
+  private final DutyCycleEncoder pivotEncoder = new DutyCycleEncoder(0);
+  private final PIDController pivotPID = new PIDController(0, 0, 0);
+
+  private final CANSparkMax intakeMotor = new CANSparkMax(2, MotorType.kBrushless);
+
+
+  private final TalonFX leftShootMotor = new TalonFX(5);
+  private final TalonFX rightShootMotor = new TalonFX(4);
+
+  private final CANSparkMax leftclimbMotor = new CANSparkMax(6, MotorType.kBrushless);
+  private final CANSparkMax rightclimbMotor = new CANSparkMax(3, MotorType.kBrushless);
+
 
   private DifferentialDrive m_drive;
 
   //Controls
   private final Joystick rightstick = new Joystick(0);
   private final Joystick leftstick = new Joystick(1);
-  //private final XboxController xbox = new XboxController(2);
+  private final XboxController xbox = new XboxController(2);
+
+  //FUNCTIONS
+  //Pivot
+  public void setPivotSpeed(double speed){
+    pivotMotor.set(speed);
+  }
+  public void stopPivot(){
+    pivotMotor.set(0);
+  }
+  public void setPivotToAngle(double setpoint){
+    double pivotEncoderAngle = pivotEncoder.getDistance();
+    setPivotSpeed(pivotPID.calculate(pivotEncoderAngle, setpoint));
+  }
+  public void resetPivotEncoder(){
+    pivotEncoder.reset();
+  }
+
+  //intake
+  public void setIntakeSpeed(double speed){
+    intakeMotor.set(speed);
+  }
+  public void stopIntake(){
+    intakeMotor.set(0);
+  }
+
+  //Shooter
+  public void setShooterSpeed(double speed){
+    leftShootMotor.set(speed);
+  }
+  public void stopShooter(){
+    leftShootMotor.set(0);
+  }
+
+  //AUTO
+  // public void shootAndCrossLine(){
+  //   new SequentialCommandGroup(
+  //     //spin shooter, wait 3s, run intake, wait 3s
+  //     new InstantCommand(() -> setShooterSpeed(.25)), new WaitCommand(3), new InstantCommand(() -> setIntakeSpeed(-.5)), new WaitCommand(3),
+  //     //stop shooter and intake
+  //     new InstantCommand(() -> stopShooter()), new InstantCommand(() -> stopIntake()),
+  //     //drive, wait 3s, stop driving
+  //     new InstantCommand(() -> m_drive.tankDrive(.5, .5)), new WaitCommand(3), new InstantCommand(() -> m_drive.tankDrive(0, 0))
+  //   );
+  // }
+
+
 
 
   @Override
@@ -50,11 +120,24 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
 
-    frontrightMotor.setInverted(true);
-    backrightMotor.setInverted(true);
-    frontleftMotor.addFollower(backleftMotor);
-    frontrightMotor.addFollower(backrightMotor);
-    m_drive = new DifferentialDrive(frontleftMotor, frontrightMotor);
+    //DRIVE
+    frontRightMotor.setInverted(true);
+    backRightMotor.setInverted(true);
+    frontLeftMotor.addFollower(backLeftMotor);
+    frontRightMotor.addFollower(backRightMotor);
+    m_drive = new DifferentialDrive(frontLeftMotor, frontRightMotor);
+
+    //INTAKE
+    intakeMotor.setInverted(false);
+
+    //PIVOT
+    pivotMotor.setInverted(false);
+
+    //SHOOTER
+    leftShootMotor.setInverted(false);
+    rightShootMotor.setControl(new Follower(3, true));
+
+
   }
 
   /**
@@ -106,10 +189,29 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+    //DRIVE
+    m_drive.tankDrive(leftstick.getY(), rightstick.getY());
 
-    //Tank drive with a given left and right rates
-    drivetrain.tankDrive(leftstick.getY(),rightstick.getY());
+    //PIVOT
+    if (xbox.getYButton()){
+      setPivotToAngle(.5);
+    } else {
+      setPivotSpeed(xbox.getRightY());
+    }
 
+    //INTAKE
+    setIntakeSpeed(xbox.getLeftTriggerAxis() - xbox.getRightTriggerAxis());
+
+    //SHOOT
+    if (xbox.getAButton()){
+      setShooterSpeed(.25);
+    } else if (xbox.getBButton()){
+      setShooterSpeed(.5);
+    } else {
+      stopShooter();
+    }
+
+    //CLIMB
 
   }
 
