@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
-//import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -52,9 +51,8 @@ public class Robot extends TimedRobot {
 
   private final CANSparkMax intakeMotor = new CANSparkMax(2, MotorType.kBrushless);
 
-
-  private final TalonFX leftShootMotor = new TalonFX(5);
-  private final TalonFX rightShootMotor = new TalonFX(4);
+  private final TalonFX leftshootMotor = new TalonFX(5);
+  private final TalonFX rightshootMotor = new TalonFX(4);
 
   private final CANSparkMax leftclimbMotor = new CANSparkMax(6, MotorType.kBrushless);
   private final CANSparkMax rightclimbMotor = new CANSparkMax(3, MotorType.kBrushless);
@@ -68,7 +66,7 @@ public class Robot extends TimedRobot {
   private final XboxController xbox = new XboxController(2);
 
   //FUNCTIONS
-  //Pivot
+  //PIVOT
   public void setPivotSpeed(double speed){
     pivotMotor.set(speed);
   }
@@ -83,7 +81,7 @@ public class Robot extends TimedRobot {
     pivotEncoder.reset();
   }
 
-  //intake
+  //INTAKE
   public void setIntakeSpeed(double speed){
     intakeMotor.set(speed);
   }
@@ -91,12 +89,22 @@ public class Robot extends TimedRobot {
     intakeMotor.set(0);
   }
 
-  //Shooter
+  //SHOOTER
   public void setShooterSpeed(double speed){
-    leftShootMotor.set(speed);
+    leftshootMotor.set(speed);
   }
   public void stopShooter(){
-    leftShootMotor.set(0);
+    leftshootMotor.set(0);
+  }
+
+  //CLIMBER
+  public void setClimberSpeed(double speed){
+    leftclimbMotor.set(speed);
+    rightclimbMotor.set(speed);  
+  }
+  public void stopClimber(){
+    leftclimbMotor.set(0);
+    rightclimbMotor.set(0);
   }
 
   //AUTO
@@ -134,10 +142,12 @@ public class Robot extends TimedRobot {
     pivotMotor.setInverted(false);
 
     //SHOOTER
-    leftShootMotor.setInverted(false);
-    rightShootMotor.setControl(new Follower(3, true));
+    leftshootMotor.setInverted(false);
+    rightshootMotor.setControl(new Follower(5, true));
 
-
+    //CLIMBER
+    leftclimbMotor.setInverted(false);
+    rightclimbMotor.setInverted(true);
   }
 
   /**
@@ -202,7 +212,7 @@ public class Robot extends TimedRobot {
     //INTAKE
     setIntakeSpeed(xbox.getLeftTriggerAxis() - xbox.getRightTriggerAxis());
 
-    //SHOOT
+    //SHOOTER
     if (xbox.getAButton()){
       setShooterSpeed(.25);
     } else if (xbox.getBButton()){
@@ -211,8 +221,14 @@ public class Robot extends TimedRobot {
       stopShooter();
     }
 
-    //CLIMB
-
+    //CLIMBER
+    if (xbox.getBackButton()){
+      setClimberSpeed(.5);
+    } else if (xbox.getStartButton()){
+      setClimberSpeed(-.5);
+    } else{
+      stopClimber();
+    }
   }
 
   /** This function is called once when the robot is disabled. */
