@@ -130,7 +130,7 @@ public class Robot extends TimedRobot {
 
     //DRIVE
     frontRightMotor.setInverted(true);
-    backRightMotor.setInverted(true);
+    //backRightMotor.setInverted(true);
     frontLeftMotor.addFollower(backLeftMotor);
     frontRightMotor.addFollower(backRightMotor);
     m_drive = new DifferentialDrive(frontLeftMotor, frontRightMotor);
