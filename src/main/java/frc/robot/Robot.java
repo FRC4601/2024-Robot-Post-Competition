@@ -130,7 +130,6 @@ public class Robot extends TimedRobot {
 
     //DRIVE
     frontRightMotor.setInverted(true);
-    //backRightMotor.setInverted(true);
     frontLeftMotor.addFollower(backLeftMotor);
     frontRightMotor.addFollower(backRightMotor);
     m_drive = new DifferentialDrive(frontLeftMotor, frontRightMotor);
@@ -139,7 +138,7 @@ public class Robot extends TimedRobot {
     intakeMotor.setInverted(false);
 
     //PIVOT
-    pivotMotor.setInverted(false);
+    pivotMotor.setInverted(true);
 
     //SHOOTER
     leftshootMotor.setInverted(false);
@@ -210,13 +209,23 @@ public class Robot extends TimedRobot {
     }
 
     //INTAKE
-    setIntakeSpeed(xbox.getLeftTriggerAxis() - xbox.getRightTriggerAxis());
+    //if (xbox.getRightBumper()){
+    //  setIntakeSpeed(.5);
+    //} else if (xbox.getLeftBumper()){
+    //  setIntakeSpeed(-.5);
+    //} else {
+    //  stopIntake();
+    //}
+    
+    setIntakeSpeed(xbox.getRightTriggerAxis() - xbox.getLeftTriggerAxis());
 
     //SHOOTER
     if (xbox.getAButton()){
-      setShooterSpeed(.25);
+      setShooterSpeed(.9);
     } else if (xbox.getBButton()){
       setShooterSpeed(.5);
+    } else if (xbox.getXButton()){
+      setShooterSpeed(.75);
     } else {
       stopShooter();
     }
