@@ -205,19 +205,19 @@ public class Robot extends TimedRobot {
     if (xbox.getYButton()){
       setPivotToAngle(.5);
     } else {
-      setPivotSpeed(xbox.getRightY());
+      setPivotSpeed(xbox.getRightY()*.15);
     }
 
     //INTAKE
-    //if (xbox.getRightBumper()){
-    //  setIntakeSpeed(.5);
-    //} else if (xbox.getLeftBumper()){
-    //  setIntakeSpeed(-.5);
-    //} else {
-    //  stopIntake();
-    //}
+    if (xbox.getRightBumper()){
+      setIntakeSpeed(.5);
+    } else if (xbox.getLeftBumper()){
+      setIntakeSpeed(-.5);
+    } else {
+      stopIntake();
+    }
     
-    setIntakeSpeed(xbox.getRightTriggerAxis() - xbox.getLeftTriggerAxis());
+    //setIntakeSpeed(xbox.getRightTriggerAxis() - xbox.getLeftTriggerAxis());
 
     //SHOOTER
     if (xbox.getAButton()){
