@@ -107,20 +107,41 @@ public class Robot extends TimedRobot {
     rightclimbMotor.set(0);
   }
 
-  //AUTO
-  // public void shootAndCrossLine(){
-  //   new SequentialCommandGroup(
-  //     //spin shooter, wait 3s, run intake, wait 3s
-  //     new InstantCommand(() -> setShooterSpeed(.25)), new WaitCommand(3), new InstantCommand(() -> setIntakeSpeed(-.5)), new WaitCommand(3),
-  //     //stop shooter and intake
-  //     new InstantCommand(() -> stopShooter()), new InstantCommand(() -> stopIntake()),
-  //     //drive, wait 3s, stop driving
-  //     new InstantCommand(() -> m_drive.tankDrive(.5, .5)), new WaitCommand(3), new InstantCommand(() -> m_drive.tankDrive(0, 0))
-  //   );
-  // }
+  //AUTO #1 (Front of Speaker)
+  public void ShootAndCrossLine(){
+    new SequentialCommandGroup(
+ //     //spin shooter, wait 3s, run intake, wait 3s
+      new InstantCommand(() -> setShooterSpeed(.90)), new WaitCommand(3), new InstantCommand(() -> setIntakeSpeed(-.5)), new WaitCommand(3),
+ //     //stop shooter and intake
+      new InstantCommand(() -> stopShooter()), new InstantCommand(() -> stopIntake()),
+ //     //drive, wait 3s, stop driving
+      new InstantCommand(() -> m_drive.tankDrive(.5, .5)), new WaitCommand(3), new InstantCommand(() -> m_drive.tankDrive(0, 0))
+    );
+  }
 
+ //AUTO #2 (Sides of Speaker)
+  public void BackupandShootAndCrossLine(){
+    new SequentialCommandGroup(
+ //     //drive, wait 3s, stop driving
+      new InstantCommand(() -> m_drive.tankDrive(.5, .5)), new WaitCommand(3), new InstantCommand(() -> m_drive.tankDrive(0,0)),
+ //     //spin shooter, wait 3s, run intake, wait 3s
+      new InstantCommand(() -> setShooterSpeed(.90)), new WaitCommand(3), new InstantCommand(() -> setIntakeSpeed(-.5)), new WaitCommand(3),
+ //     //stop shooter and intake
+      new InstantCommand(() -> stopShooter()), new InstantCommand(() -> stopIntake()),
+ //     //drive, wait 3s, stop driving
+      new InstantCommand(() -> m_drive.tankDrive(.5, .5)), new WaitCommand(3), new InstantCommand(() -> m_drive.tankDrive(0, 0))
+    );
+  }
 
-
+ //Auto #3 (No Move Front of Speaker) 
+  public void ShootAndDoNotMove(){
+   new SequentialCommandGroup(
+     //spin shooter, wait 3s, run intake, wait 3s
+      new InstantCommand(() -> setShooterSpeed(.90)), new WaitCommand(3), new InstantCommand(() -> setIntakeSpeed(-.5)), new WaitCommand(3),
+ //     //stop shooter and intake
+      new InstantCommand(() -> stopShooter()), new InstantCommand(() -> stopIntake())
+   );
+  }
 
   @Override
   public void robotInit() {
@@ -225,20 +246,25 @@ public class Robot extends TimedRobot {
     } else if (xbox.getBButton()){
       setShooterSpeed(.5);
     } else if (xbox.getXButton()){
-      setShooterSpeed(.75);
+      setShooterSpeed(.1);
+    } else if (xbox.getStartButton()){
+      setShooterSpeed(.25);
+    } else if (xbox.getBackButton()){
+      setShooterSpeed(.30);
     } else {
-      stopShooter();
+     stopShooter();
     }
 
     //CLIMBER
-    if (xbox.getBackButton()){
+    if (xbox.getRightStickButtonPressed()){
       setClimberSpeed(.5);
-    } else if (xbox.getStartButton()){
+    } else if (xbox.getLeftStickButtonPressed()){
       setClimberSpeed(-.5);
     } else{
       stopClimber();
     }
   }
+
 
   /** This function is called once when the robot is disabled. */
   @Override
