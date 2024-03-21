@@ -108,15 +108,15 @@ public class Robot extends TimedRobot {
     leftshootMotor.set(0);
   }
 
-  //CLIMBER
-  public void setClimberSpeed(double speed){
-    leftclimbMotor.set(speed);
-    rightclimbMotor.set(speed);  
-  }
-  public void stopClimber(){
-    leftclimbMotor.set(0);
-    rightclimbMotor.set(0);
-  }
+  ////CLIMBER
+  //public void setClimberSpeed(double speed){
+  //  leftclimbMotor.set(speed);
+  //  rightclimbMotor.set(speed);  
+  //}
+  //public void stopClimber(){
+  //  leftclimbMotor.set(0);
+  //  rightclimbMotor.set(0);
+  //}
   //  
   // 
   // AUTOS
@@ -181,6 +181,7 @@ public class Robot extends TimedRobot {
     //CLIMBER
     leftclimbMotor.setInverted(false);
     rightclimbMotor.setInverted(true);
+    //rightclimbMotor.setControl(new Follower(6, true));
   }
 
   /**
@@ -228,7 +229,7 @@ public class Robot extends TimedRobot {
         ShootAndCrossLine();
         break;
       case NoAutoSelected:
-        System.out.println("buwomp");
+        //System.out.println("buwomp");
         break;
       default:
         break;
@@ -284,18 +285,25 @@ public class Robot extends TimedRobot {
      stopShooter();
     }
 
-    //CLIMBER
-    if (xbox.getRightStickButtonPressed()){
-    if (xbox.getRightStickButtonPressed()){
-      setClimberSpeed(.5);
-    } else if (xbox.getLeftStickButtonPressed()){
-    } else if (xbox.getLeftStickButtonPressed()){
-      setClimberSpeed(-.5);
-    } else{
-      stopClimber();
-    };
-  }
-  }
+    //Right Climber
+    if (leftstick.getRawButton(2)){
+      rightclimbMotor.set(1);
+    } else if (leftstick.getRawButton(1)){
+      rightclimbMotor.set(-1);
+    } else {
+      rightclimbMotor.set(0);
+    }
+
+    //Left Climber
+    if (rightstick.getRawButton(2)){
+      leftclimbMotor.set(1);
+    } else if (rightstick.getRawButton(1)){
+      leftclimbMotor.set(-1);
+    } else {
+      leftclimbMotor.set(0);
+    }
+
+   }
 
   /** This function is called once when the robot is disabled. */
   @Override
