@@ -284,25 +284,6 @@ public class Robot extends TimedRobot {
      stopShooter();
     }
 
-    //IDK WHAT JOHN WAS DOING HERE
-    //int k = 0;
-    //if(xbox.getAButtonPressed()){
-    //  k=1;
-    //  while(k==1){
-        //Check if intake is in correct position
-        //If true, move on. If false, move to correct position
-
-        //Set shooters to correct speed
-
-        //feed disc
-
-        //ensure disk has left the shooter
-
-        //stop all shooter/intake motors
-
-      //  k=0;
-      //}
-
     //CLIMBER
     if (xbox.getRightStickButtonPressed()){
     if (xbox.getRightStickButtonPressed()){
