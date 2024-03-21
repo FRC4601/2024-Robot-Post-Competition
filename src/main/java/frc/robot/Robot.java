@@ -281,6 +281,7 @@ public class Robot extends TimedRobot {
       setShooterSpeed(1);
     } else {
      stopShooter();
+     stopShooter();
     }
 
     //IDK WHAT JOHN WAS DOING HERE
@@ -304,12 +305,15 @@ public class Robot extends TimedRobot {
 
     //CLIMBER
     if (xbox.getRightStickButtonPressed()){
+    if (xbox.getRightStickButtonPressed()){
       setClimberSpeed(.5);
+    } else if (xbox.getLeftStickButtonPressed()){
     } else if (xbox.getLeftStickButtonPressed()){
       setClimberSpeed(-.5);
     } else{
       stopClimber();
-    }
+    };
+  }
   }
 
   /** This function is called once when the robot is disabled. */
