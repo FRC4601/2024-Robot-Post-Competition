@@ -4,20 +4,24 @@
 
 package frc.robot;
 
+
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -29,8 +33,9 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
  * project.
  */
 public class Robot extends TimedRobot {
-  private static final String kDefaultAuto = "Default";
-  private static final String kCustomAuto = "My Auto";
+  private static final String NoAutoSelected = "No Auto Selected";
+  private static final String ShootDontMove = "Shoot and Don't Move";
+  private static final String ShootCrossLine = "Shoot and Cross Line ";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
@@ -47,7 +52,7 @@ public class Robot extends TimedRobot {
 
   private final CANSparkMax pivotMotor = new CANSparkMax(1, MotorType.kBrushless);
   private final DutyCycleEncoder pivotEncoder = new DutyCycleEncoder(0);
-  private final PIDController pivotPID = new PIDController(0, 0, 0);
+  private final PIDController pivotPID = new PIDController(.1, 0, 0);
 
   private final CANSparkMax intakeMotor = new CANSparkMax(2, MotorType.kBrushless);
 
@@ -65,6 +70,8 @@ public class Robot extends TimedRobot {
   private final Joystick leftstick = new Joystick(1);
   private final XboxController xbox = new XboxController(2);
 
+  private final Timer autoTimer = new Timer();
+
   //FUNCTIONS
   //PIVOT
   public void setPivotSpeed(double speed){
@@ -74,8 +81,12 @@ public class Robot extends TimedRobot {
     pivotMotor.set(0);
   }
   public void setPivotToAngle(double setpoint){
-    double pivotEncoderAngle = pivotEncoder.getDistance();
-    setPivotSpeed(pivotPID.calculate(pivotEncoderAngle, setpoint));
+    // pivotPID.calculate(getPivotEncoderAngle(), setpoint)
+    double pivotCommanded = setpoint > 0 ? Math.min(.1, pivotPID.calculate(getPivotEncoderAngle(), setpoint)) : Math.max(-.1, pivotPID.calculate(getPivotEncoderAngle(), setpoint));
+    setPivotSpeed(pivotCommanded);
+  }
+  public double getPivotEncoderAngle(){
+    return -pivotEncoder.getDistance();
   }
   public void resetPivotEncoder(){
     pivotEncoder.reset();
@@ -106,27 +117,49 @@ public class Robot extends TimedRobot {
     leftclimbMotor.set(0);
     rightclimbMotor.set(0);
   }
+  //  
+  // 
+  // AUTOS
+  // 
+  // 
+  public void CrossLine(){
 
-  //AUTO
-  // public void shootAndCrossLine(){
-  //   new SequentialCommandGroup(
-  //     //spin shooter, wait 3s, run intake, wait 3s
-  //     new InstantCommand(() -> setShooterSpeed(.25)), new WaitCommand(3), new InstantCommand(() -> setIntakeSpeed(-.5)), new WaitCommand(3),
-  //     //stop shooter and intake
-  //     new InstantCommand(() -> stopShooter()), new InstantCommand(() -> stopIntake()),
-  //     //drive, wait 3s, stop driving
-  //     new InstantCommand(() -> m_drive.tankDrive(.5, .5)), new WaitCommand(3), new InstantCommand(() -> m_drive.tankDrive(0, 0))
-  //   );
-  // }
+  }
 
+   public void ShootAndCrossLine(){
+    if (autoTimer.get() > 9){
+      m_drive.tankDrive(0, 0);
+    } else if (autoTimer.get() > 5){
+      stopShooter();
+      stopIntake();
+      m_drive.tankDrive(.5, .5);
+    } else if (autoTimer.get() > 2){
+      setIntakeSpeed(-.5);
+    } else if (autoTimer.get() > 0){
+      setShooterSpeed(.9);
+    }
+   }
 
-
+   public void ShootAndDoNotMove(){
+    if (autoTimer.get() > 5){
+      stopShooter();
+      stopIntake();
+    } else if (autoTimer.get() > 2){
+      setIntakeSpeed(-.5);
+    } else if (autoTimer.get() > 0){
+      setShooterSpeed(.9);
+    }
+  }
+   
 
   @Override
   public void robotInit() {
-    m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
-    m_chooser.addOption("My Auto", kCustomAuto);
-    SmartDashboard.putData("Auto choices", m_chooser);
+    m_chooser.setDefaultOption(NoAutoSelected, NoAutoSelected);
+    m_chooser.addOption(ShootDontMove, ShootDontMove);
+    m_chooser.addOption(ShootCrossLine, ShootCrossLine);
+    SmartDashboard.putData("Auto Chooser", m_chooser);
+    //Camera
+    CameraServer.startAutomaticCapture();
 
     //DRIVE
     frontRightMotor.setInverted(true);
@@ -139,6 +172,7 @@ public class Robot extends TimedRobot {
 
     //PIVOT
     pivotMotor.setInverted(true);
+    SmartDashboard.putData("Reset Pivot Encoder", new InstantCommand(() -> resetPivotEncoder()).ignoringDisable(true));
 
     //SHOOTER
     leftshootMotor.setInverted(false);
@@ -158,6 +192,10 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    SmartDashboard.putNumber("Pivot Encoder Angle", getPivotEncoderAngle());
+    SmartDashboard.putNumber("Pivot Motor Output", pivotMotor.getAppliedOutput());
+    double shootSpeed = (leftshootMotor.getVelocity().refresh().getValueAsDouble() * 60 + rightshootMotor.getVelocity().refresh().getValueAsDouble() * 60) / 2;
+    SmartDashboard.putNumber("Shooter Speed", shootSpeed);
   }
 
   /**
@@ -173,27 +211,37 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     m_autoSelected = m_chooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
+
+    autoTimer.reset();
+    autoTimer.start();
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
     switch (m_autoSelected) {
-      case kCustomAuto:
-        // Put custom auto code here
+      case ShootDontMove:
+        ShootAndDoNotMove();
         break;
-      case kDefaultAuto:
+      case ShootCrossLine:
+        ShootAndCrossLine();
+        break;
+      case NoAutoSelected:
+        System.out.println("buwomp");
+        break;
       default:
-        // Put default auto code here
         break;
+      
     }
   }
 
   /** This function is called once when teleop is enabled. */
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+    autoTimer.stop();
+    autoTimer.reset();
+  }
 
   /** This function is called periodically during operator control. */
   @Override
@@ -202,10 +250,11 @@ public class Robot extends TimedRobot {
     m_drive.tankDrive(leftstick.getY(), rightstick.getY());
 
     //PIVOT
+    
     if (xbox.getYButton()){
-      setPivotToAngle(.5);
+      setPivotToAngle(.3);
     } else {
-      setPivotSpeed(xbox.getRightY()*.15);
+      setPivotSpeed(xbox.getLeftY()*.15);
     }
 
     //INTAKE
@@ -225,15 +274,38 @@ public class Robot extends TimedRobot {
     } else if (xbox.getBButton()){
       setShooterSpeed(.5);
     } else if (xbox.getXButton()){
-      setShooterSpeed(.75);
+      setShooterSpeed(.1);
+    } else if (xbox.getStartButton()){
+      setShooterSpeed(.25);
+    } else if (xbox.getBackButton()){
+      setShooterSpeed(1);
     } else {
-      stopShooter();
+     stopShooter();
     }
 
+    //IDK WHAT JOHN WAS DOING HERE
+    //int k = 0;
+    //if(xbox.getAButtonPressed()){
+    //  k=1;
+    //  while(k==1){
+        //Check if intake is in correct position
+        //If true, move on. If false, move to correct position
+
+        //Set shooters to correct speed
+
+        //feed disc
+
+        //ensure disk has left the shooter
+
+        //stop all shooter/intake motors
+
+      //  k=0;
+      //}
+
     //CLIMBER
-    if (xbox.getBackButton()){
+    if (xbox.getRightStickButtonPressed()){
       setClimberSpeed(.5);
-    } else if (xbox.getStartButton()){
+    } else if (xbox.getLeftStickButtonPressed()){
       setClimberSpeed(-.5);
     } else{
       stopClimber();
