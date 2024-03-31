@@ -8,6 +8,7 @@ package frc.robot;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.cameraserver.CameraServer;
@@ -36,6 +37,8 @@ public class Robot extends TimedRobot {
   private static final String NoAutoSelected = "No Auto Selected";
   private static final String ShootDontMove = "Shoot and Don't Move";
   private static final String ShootCrossLine = "Shoot and Cross Line ";
+  private static final String BlueShortShootCrossLine = "Blue Short Shoot and Cross Line";
+  private static final String RedShortShootCrossLine = "Red Short Shoot and Cross Line";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
@@ -122,9 +125,9 @@ public class Robot extends TimedRobot {
   // AUTOS
   // 
   // 
-  public void CrossLine(){
+  //public void CrossLine(){
 
-  }
+  //}
 
    public void ShootAndCrossLine(){
     if (autoTimer.get() > 9){
@@ -132,7 +135,7 @@ public class Robot extends TimedRobot {
     } else if (autoTimer.get() > 5){
       stopShooter();
       stopIntake();
-      m_drive.tankDrive(.5, .5);
+      m_drive.tankDrive(.6, .6);
     } else if (autoTimer.get() > 2){
       setIntakeSpeed(-.5);
     } else if (autoTimer.get() > 0){
@@ -150,13 +153,42 @@ public class Robot extends TimedRobot {
       setShooterSpeed(.9);
     }
   }
+
+   public void BlueShortShootAndCrossLine(){
+    if (autoTimer.get() > 9){
+      m_drive.tankDrive(0, 0);
+    } else if (autoTimer.get() > 5){
+      stopShooter();
+      stopIntake();
+      m_drive.tankDrive(.75, .5);
+    } else if (autoTimer.get() > 2){
+      setIntakeSpeed(-.5);
+    } else if (autoTimer.get() > 0){
+      setShooterSpeed(.9);
+    }
+   } 
    
+   public void RedShortShootAndCrossLine(){
+    if (autoTimer.get() > 9){
+      m_drive.tankDrive(0, 0);
+    } else if (autoTimer.get() > 5){
+      stopShooter();
+      stopIntake();
+      m_drive.tankDrive(.5, .75);
+    } else if (autoTimer.get() > 2){
+      setIntakeSpeed(-.5);
+    } else if (autoTimer.get() > 0){
+      setShooterSpeed(.9);
+    }
+   }
 
   @Override
   public void robotInit() {
     m_chooser.setDefaultOption(NoAutoSelected, NoAutoSelected);
     m_chooser.addOption(ShootDontMove, ShootDontMove);
     m_chooser.addOption(ShootCrossLine, ShootCrossLine);
+    m_chooser.addOption(BlueShortShootCrossLine, BlueShortShootCrossLine);
+    m_chooser.addOption(RedShortShootCrossLine, RedShortShootCrossLine);
     SmartDashboard.putData("Auto Chooser", m_chooser);
     //Camera
     CameraServer.startAutomaticCapture();
@@ -172,6 +204,7 @@ public class Robot extends TimedRobot {
 
     //PIVOT
     pivotMotor.setInverted(true);
+    pivotMotor.setIdleMode(IdleMode.kBrake);
     SmartDashboard.putData("Reset Pivot Encoder", new InstantCommand(() -> resetPivotEncoder()).ignoringDisable(true));
 
     //SHOOTER
@@ -181,7 +214,9 @@ public class Robot extends TimedRobot {
     //CLIMBER
     leftclimbMotor.setInverted(false);
     rightclimbMotor.setInverted(true);
-    //rightclimbMotor.setControl(new Follower(6, true));
+
+    // rightclimbMotor.follow(leftclimbMotor); buwomp
+    
   }
 
   /**
@@ -228,6 +263,12 @@ public class Robot extends TimedRobot {
       case ShootCrossLine:
         ShootAndCrossLine();
         break;
+      case BlueShortShootCrossLine:
+        BlueShortShootAndCrossLine();
+        break;  
+      case RedShortShootCrossLine:
+        RedShortShootAndCrossLine();
+        break;   
       case NoAutoSelected:
         //System.out.println("buwomp");
         break;
@@ -255,7 +296,7 @@ public class Robot extends TimedRobot {
     if (xbox.getYButton()){
       setPivotToAngle(.3);
     } else {
-      setPivotSpeed(xbox.getLeftY()*.15);
+      setPivotSpeed(xbox.getLeftY()*.45);
     }
 
     //INTAKE
@@ -284,6 +325,7 @@ public class Robot extends TimedRobot {
      stopShooter();
      stopShooter();
     }
+
 
     //Right Climber
     if (leftstick.getRawButton(2)){
