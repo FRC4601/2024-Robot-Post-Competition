@@ -1,4 +1,4 @@
-//CB-11 "Thunk" RobotCode
+//CB-11 "Thunk"
 
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
@@ -112,23 +112,8 @@ public class Robot extends TimedRobot {
     leftshootMotor.set(0);
   }
 
-  ////CLIMBER
-  //public void setClimberSpeed(double speed){
-  //  leftclimbMotor.set(speed);
-  //  rightclimbMotor.set(speed);  
-  //}
-  //public void stopClimber(){
-  //  leftclimbMotor.set(0);
-  //  rightclimbMotor.set(0);
-  //}
-  //  
-  // 
-  // AUTOS
-  // 
-  // 
-  //public void CrossLine(){
 
-  //}
+  // AUTOS
 
    public void ShootAndCrossLine(){
     if (autoTimer.get() > 9){
